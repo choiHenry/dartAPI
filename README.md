@@ -16,13 +16,13 @@ Precisely, each [designated large business group(LBG)](https://www.egroup.go.kr/
 
 Program scrapes Equity Ownership Status('소유지분현황') sections of these reports for 2019-2020 using [open dart api](https://www.egroup.go.kr/egps/wi/stat/kap/appnSttusList.do) and process data in accordance with the research purpose of [Research Center for Market and Gorvenance](rcmg.snu.ac.kr).
 
-The lists of designated LBG and the representing firm is in 'group_list' directory.
+The lists of designated LBG and the representing firm are in 'group_list' directory.
 
-The raw data for each firm parsed directly from web page is stored in 'raw' directory.
+The raw data sets for each firm parsed directly from web page are stored in 'raw' directory.
 
-The final data is in 'out' directory.
+The final datasets are in 'out' directory.
 
-The confirm data is in confirm directory.
+The confirm datasets are in confirm directory.
 
 ### program
 
@@ -107,9 +107,9 @@ api.getCBDataAll()
 
 ## Error handling
 
-### If "Chromedriver permission denied" message appears in terminal, go to [chromedriver download page](https://chromedriver.chromium.org/downloads) and download latest versions in accordance with your local os.
+1. If "Chromedriver permission denied" message appears in terminal, go to [chromedriver download page](https://chromedriver.chromium.org/downloads) and download latest versions in accordance with your local os.
 
-### If 'Error: “chromedriver” cannot be opened because the developer cannot be verified' message shows up in the terminal, then refer this [stack overflow answer](https://stackoverflow.com/questions/60362018/macos-catalinav-10-15-3-error-chromedriver-cannot-be-opened-because-the-de). To sum up, open up the terminal in the local directory where chromedriver is, and type
+2. If 'Error: “chromedriver” cannot be opened because the developer cannot be verified' message shows up in the terminal, then refer this [stack overflow answer](https://stackoverflow.com/questions/60362018/macos-catalinav-10-15-3-error-chromedriver-cannot-be-opened-because-the-de). To sum up, open up the terminal in the local directory where chromedriver is, and type
 
 ```terminal
 $ xattr -d com.apple.quarantine chromedriver
@@ -122,4 +122,4 @@ It is not hard to find patterns in report typos.
 1. '친족 합계' row value in '합계 주식수' column contains '합계 주식수' data of '동일인'
 2. '기타' rows of a firm contains '합계' row
 
-These common errors could be handle in a general algorithm.
+These common errors could be handled in a general algorithm.
