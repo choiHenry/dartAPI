@@ -13,12 +13,12 @@ class Dapi:
 
     @property
     def groupList(self):
-        print('getting groupList attr')
+
         return self._groupList
 
     @groupList.setter
     def groupList(self, groupList):
-        print('setting groupList attr')
+
         self._groupList = groupList
 
     def addGroupDict(self, groupDict):
@@ -26,17 +26,17 @@ class Dapi:
 
     @property
     def apiKey(self):
-        print('getting apiKey attr')
+
         return self._apiKey
 
     @apiKey.setter
     def apiKey(self, apiKey):
-        print('setting apiKey attr')
+
         self._apiKey = apiKey
 
     @property
     def corpCode(self):
-        print('getting corpCode attr')
+
         return self._corpCode
 
     @corpCode.setter
@@ -73,9 +73,11 @@ class Dapi:
 
         elif path.exists('CORPCODE.xml'):
             target = 'CORPCODE.xml'
+
         else:
-            print('There exists no corp_code file. Downloading the file in the current directory...')
+            print('There is no corp_code file in the current Directory. Downloading the file in the current directory...')
             target = self.getCorpcodeFile("CORPCODE.zip")
+
         xml = ET.parse(target)
         root = xml.getroot()
 
@@ -600,13 +602,17 @@ class Dapi:
 
         import os
 
+        print(f'Start parsing {firmname} {year} table...')
         df = self.parseCBTable(self.getRawCBData(firmname, year), firmname, year)
+
         checkData = df.groupby(['firmname']).sum('own2')
 
         # save the confirm data in the confirm folder
         if not os.path.exists('./data/confirm'):
             os.makedirs('./data/confirm')
         checkData.to_csv(f'./data/confirm/{firmname}_{year}_confirm.csv')
+
+        print(f'Successfully saved {firmname} {year} data in \'./data/out/\'.\nCheck confirm data in \'./data/confirm/\'')
 
         print(checkData)
 
@@ -616,6 +622,7 @@ class Dapi:
         df.to_csv(f'./data/out/{firmname}_{year}.csv')
 
     def getCBDataAll(self):
+
         for year in (2019, 2020):
             match = self.groupList[year-2019]
             for firmname in match['대표회사']:
