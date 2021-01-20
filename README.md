@@ -106,3 +106,21 @@ api.getCBDataAll()
 
 ```
 
+# Error handling
+
+1. If "Chromedriver permission denied" message appears in terminal, go to [chromedriver download page](https://chromedriver.chromium.org/downloads) and download latest versions in accordance with your local os.
+
+2. If 'Error: “chromedriver” cannot be opened because the developer cannot be verified' message shows up in the terminal, then refer this [stack overflow answer](https://stackoverflow.com/questions/60362018/macos-catalinav-10-15-3-error-chromedriver-cannot-be-opened-because-the-de). To sum up, open up the terminal in the local directory where chromedriver is, and type
+
+```terminal
+$ xattr -d com.apple.quarantine chromedriver
+```
+
+# To be updated
+
+It is not hard to find patterns in report typos.
+
+1. '친족 합계' row value in '합계 주식수' column contains '합계 주식수' data of '동일인'
+2. '기타' rows of a firm contains '합계' row
+
+These common errors could be handle in a general algorithm.
