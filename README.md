@@ -42,7 +42,7 @@ Then program starts to download and process data for 2019 and 2020.
 
 ### If you want to get data for 2021
 
-You need to insert LGB list to Dapi object in the dictionary form, e.g.,
+You need to insert LBG list to Dapi object in the dictionary form, e.g.,
 
 ```python
 group20 = {'기업집단': ['삼성', '현대자동차', '에스케이', '엘지', '롯데', '포스코', '한화', '지에스', '현대중공업', '농협', '신세계',
