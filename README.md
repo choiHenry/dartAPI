@@ -14,7 +14,7 @@ This repository contains large businesss group data package.
 
 Precisely, each [designated large business group(LBG)](https://www.egroup.go.kr/egps/wi/stat/kap/appnSttusList.do) submits the yearly report, whose name is '대규모기업집단현황공시[연1회공시및1/4분기용(대표회사)]' to KFTC. For example, Samsung Electronics who represents entire Samsung business group submitted a [대규모기업집단현황공시[연1회공시및1/4분기용(대표회사)]](http://dart.fss.or.kr/dsaf001/main.do?rcpNo=20200601000086) on 05/31/20.
 
-Program scrapes Equity Ownership Status('소유지분현황') sections of these reports for 2019-2020 using [open dart api](https://www.egroup.go.kr/egps/wi/stat/kap/appnSttusList.do) and process data in accordance with the research purpose of [Research Center for Market and Gorvenance](rcmg.snu.ac.kr).
+Program scrapes Equity Ownership Status('소유지분현황') sections of these reports for 2019-2020 using [open dart api](https://www.egroup.go.kr/egps/wi/stat/kap/appnSttusList.do) and process data in accordance with the research purpose of [Research Center for Market and Government](rcmg.snu.ac.kr).
 
 The lists of designated LBG and the representing firm are in 'group_list' directory.
 
