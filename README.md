@@ -10,7 +10,7 @@ This repository contains large businesss group data package.
 
 ## How to use
 
-1. data
+### data
 
 Precisely, each [designated large business group(LBG)](https://www.egroup.go.kr/egps/wi/stat/kap/appnSttusList.do) submits the yearly report, whose name is '대규모기업집단현황공시[연1회공시및1/4분기용(대표회사)]' to KFTC. For example, Samsung Electronics who represents entire Samsung business group submitted a [대규모기업집단현황공시[연1회공시및1/4분기용(대표회사)]](http://dart.fss.or.kr/dsaf001/main.do?rcpNo=20200601000086) on 05/31/20.
 
@@ -24,7 +24,7 @@ The final data is in 'out' directory.
 
 The confirm data is in confirm directory.
 
-2. program
+### program
 
 After cloning this repository in a local directory on your machine, install python(version >= 3.6).
 
@@ -40,7 +40,7 @@ $ python3 main.py <your-open-dart-api-key>
 
 Then program starts to download and process data for 2019 and 2020.
 
-3. If you want to get data for 2021
+### If you want to get data for 2021
 
 You need to insert LGB list to Dapi object in the dictionary form, e.g.,
 
@@ -107,9 +107,9 @@ api.getCBDataAll()
 
 ## Error handling
 
-1. If "Chromedriver permission denied" message appears in terminal, go to [chromedriver download page](https://chromedriver.chromium.org/downloads) and download latest versions in accordance with your local os.
+### If "Chromedriver permission denied" message appears in terminal, go to [chromedriver download page](https://chromedriver.chromium.org/downloads) and download latest versions in accordance with your local os.
 
-2. If 'Error: “chromedriver” cannot be opened because the developer cannot be verified' message shows up in the terminal, then refer this [stack overflow answer](https://stackoverflow.com/questions/60362018/macos-catalinav-10-15-3-error-chromedriver-cannot-be-opened-because-the-de). To sum up, open up the terminal in the local directory where chromedriver is, and type
+### If 'Error: “chromedriver” cannot be opened because the developer cannot be verified' message shows up in the terminal, then refer this [stack overflow answer](https://stackoverflow.com/questions/60362018/macos-catalinav-10-15-3-error-chromedriver-cannot-be-opened-because-the-de). To sum up, open up the terminal in the local directory where chromedriver is, and type
 
 ```terminal
 $ xattr -d com.apple.quarantine chromedriver
