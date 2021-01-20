@@ -39,6 +39,7 @@ myAPIKey = "7946dcde119af7656afc01157071c0ab9488b9ad"  # api key
 api.apiKey = myAPIKey
 # api.saveGroupListData()
 # api.getCBDataAll()
-api.getCBData("티케이케미칼", "2020")
+api.getCBData('티케이케미칼', '2019')
+# api.getCBDataof(2019)
 
 

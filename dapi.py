@@ -99,7 +99,7 @@ class Dapi:
         pblntf_detail_ty = "J004"
 
         # set begin date and end date regarding each firm's report submit date
-        if (((firmname == '롯데지주') & (year == '2020')) | ((firmname == '티케이티케이케미칼') & (year == '2019'))):
+        if (((firmname == '롯데지주') & (year == '2020')) | ((firmname == '티케이케미칼') & (year == '2019'))):
             bgn_de = year + "0901"
             end_de = year + "0930"
         elif ((firmname == '농협경제지주') | ((firmname == '금호산업') & (year == '2019')) | (
@@ -235,6 +235,17 @@ class Dapi:
             drop_list2 = list(df[df['성명'].str.contains('합계', na=False)].index)
             df.drop(drop_list2, axis=0, inplace=True)
 
+        # 씨제이(CJ)2019 data cleansing
+        # 엠엠오엔터테인먼트 기타에 합계 주식수가 잘못 입력됨: 제거
+        if ((firmname == 'CJ') & (year == '2019')):
+            print(df[(df['소속회사명2'] == '엠엠오엔터테인먼트') & (df['동일인과의 관계3'] == '총계')].index)
+            id = int(list(df[(df['소속회사명2'] == '엠엠오엔터테인먼트') & (df['동일인과의 관계3'] == '총계')].index)[0]) - 1
+            df.drop([id], axis=0, inplace=True)
+
+
+        # SK2019
+        # 디디아이에스씨57 위탁관리부동산투자회사 총계가 1/10
+
         # 애경(AK홀딩스)2020 data cleansing
         if ((firmname == 'AK홀딩스') & (year == '2020')):
 
@@ -264,7 +275,8 @@ class Dapi:
                 val2 = int(df.loc[mask2, '합계 주식수'])
                 df.loc[mask, '합계 주식수'] = val - val2
             # 신세계디에프글로벌 기타 동일인관련자 항목에 합계 주식수가 중복되어 입력됨: 제거
-            df[(df['소속회사명2'] == '신세계디에프글로벌') & (df['동일인과의 관계3'] == '기타 동일인관련자')]['합계 주식수'] = '0'
+            mask = (df['소속회사명2'] == '신세계디에프글로벌') & (df['동일인과의 관계3'] == '기타 동일인관련자')
+            df.loc[mask, '합계 주식수'] = '0'
 
         # 한국앤컴퍼니 친족 합계에 동일인이 포함됨: 제외
         if (((firmname == '한국앤컴퍼니') & (year == '2020')) | ((firmname == '한국앤컴퍼니') & (year == '2019'))):
@@ -299,19 +311,23 @@ class Dapi:
             val2 = int(df.loc[mask2, '합계 주식수'])
             df.loc[mask, '합계 주식수'] = val - val2
 
-        if (((firmname == '태광산업') & (year == '2019'))):
-            mask = (df['소속회사명2'] == '한국케이블텔레콤') & (df['동일인과의 관계3'] == '기타')
-            mask2 = (df['소속회사명2'] == '한국케이블텔레콤') & (df['동일인과의 관계3'] == '동일인측이 아닌 최다주주')
-            val = int(df.loc[mask, '합계 주식수'])
-            val2 = int(df.loc[mask2, '합계 주식수'])
-            df.loc[mask, '합계 주식수'] = val - val2
-
         if (((firmname == '티케이케미칼') & (year == '2020'))):
             mask = (df['소속회사명2'] == '삼환기업') & (df['동일인과의 관계3'] == '친족 합계')
             mask2 = (df['소속회사명2'] == '삼환기업') & (df['동일인과의 관계3'] == '동일인')
             val = int(df.loc[mask, '합계 주식수'])
             val2 = int(df.loc[mask2, '합계 주식수'])
             df.loc[mask, '합계 주식수'] = val - val2
+
+        #카카오 2020
+        if ((firmname == '카카오') & (year == '2020')):
+            Dapi.subtractOwner(df, "카카오")
+        # 신세계2020
+        if ((firmname == '신세계') & (year == '2020')):
+            Dapi.subtractOwner(df, "신세계")
+
+        # 티케이케미칼2019
+        if ((firmname == '티케이케미칼') & (year == '2019')):
+            Dapi.subtractOwner(df, "경남티앤디")
 
         # 중흥건설(중흥건설)2019, 2020 data cleansing
         # shift data by 1 period
@@ -330,12 +346,14 @@ class Dapi:
             df.loc[mask, '합계 주식수'] = 0
 
         # 유진(유진기업)2020 data cleansing
+        # 천안기업의 경우 친족합계의 합계주식수가 잘못 입력됨
         if ((firmname == '유진기업') & (year == '2020')):
             mask = (df['소속회사명2'] == '천안기업') & (df['동일인과의 관계3'] == '친족 합계')
             mask2 = (df['소속회사명2'] == '천안기업') & (df['동일인과의 관계3'] == '동일인')
             val = int(df.loc[mask, '합계 주식수'])
             val2 = int(df.loc[mask2, '합계 주식수'])
-            df.loc[mask, '합계 주식수'] = val - val2
+            df.loc[mask, '합계 주식수'] = 123957
+
 
         # IMM(아이엠엠인베스트먼트)2020 페트라7의알파 사모투자합자회사 합계 지분율이 100이 안됨.
         # 한국투자금융(한국금융지주)한국투자혁신성장스케일업사모투자합자회사는 2020년 6월 출자 예정임
@@ -348,7 +366,7 @@ class Dapi:
             # 유니시티 합계 주식수, 지분율 미입력
             mask = (df['소속회사명2'] == '유니시티') & (df['동일인과의 관계3'] == '기타')
             df.loc[mask, '합계 주식수'] = df.loc[mask, '보통주 주식수']
-            print(df.loc[mask, '합계 주식수'])
+            # print(df.loc[mask, '합계 주식수'])
 
         # 태영(태영건설)2020 data cleansing
         if ((firmname == '태영건설') & (year == '2020')):
@@ -356,7 +374,7 @@ class Dapi:
             # 유니시티 합계 주식수, 지분율 미입력
             mask = (df['소속회사명2'] == '유니시티') & (df['동일인과의 관계3'] == '기타')
             df.loc[mask, '합계 주식수'] = df.loc[mask, '보통주 주식수']
-            print(df.loc[mask, '합계 주식수'])
+            # print(df.loc[mask, '합계 주식수'])
 
 
 
@@ -370,6 +388,19 @@ class Dapi:
             val2 = int(df.loc[mask2, '합계 주식수'])
             df.loc[mask, '합계 주식수'] = val - val2
 
+        # 한화2020
+        if ((firmname == '한화') & (year == '2020')):
+            Dapi.copyOrdinaryShares(df, "일산씨월드", "한화건설")
+
+        # SK2020
+        if ((firmname == 'SK') & (year == '2020')):
+            mask = (df['소속회사명2'] == '드림어스컴퍼니(舊 아이리버)') & (df['동일인과의 관계3'] == '기타')
+            df.loc[mask, '합계 주식수'] = df.loc[mask, '보통주 주식수']
+            Dapi.sumShares(df, "유베이스매뉴팩처링아시아")
+
+        # 포스코2020
+        if ((firmname == '포스코') & (year == '2020')):
+            Dapi.copyOrdinaryShares2(df, "포스코에스피에스")
 
         if ((df['합계 주식수'].dtype == 'float64') | (df['합계 주식수'].dtype == 'int64')):
             pass
@@ -379,7 +410,47 @@ class Dapi:
             df.replace('^\s*$', np.nan, regex=True, inplace=True)
             df['합계 주식수'] = df['합계 주식수'].astype(float)
 
+        # SK2019
+        # 디디아이에스씨57 위탁관리부동산투자회사 총계가 1/10: *10
+        if ((firmname == 'SK') & (year == '2019')):
+            mask = (df['소속회사명2'] == '디디아이에스씨57 위탁관리부동산투자회사') & (df['동일인과의 관계3'] == '총계')
+            df.loc[mask, '합계 주식수'] *= 10
 
+        # 에스케이루브리컨츠 합계 주식수 총계가 미입력: 입력
+            Dapi.copySumShares(df, '에스케이루브리컨츠', '계열회사 (국내+해외)')
+
+        # 에스케이에어가스 합계 주식수가 미입력: 입력
+            mask = (df['소속회사명2'] == '에스케이에어가스') & (df['동일인과의 관계3'] == '총계')
+            df.loc[mask, '합계 주식수'] = float(df.loc[mask, '보통주 주식수'])
+            mask2 = (df['소속회사명2'] == '에스케이에어가스') & (df['동일인과의 관계3'] == '계열회사 (국내+해외)')
+            df.loc[mask2, '합계 주식수'] = float(df.loc[mask2, '보통주 주식수'])
+
+        # 에스케이트리켐 합계 주식수 총계가 미입력: 입력
+            mask = (df['소속회사명2'] == '에스케이트리켐') & (df['동일인과의 관계3'] == '총계')
+            mask2 = (df['소속회사명2'] == '에스케이트리켐') & (df['동일인과의 관계3'] == '계열회사 (국내+해외)')
+            mask3 = (df['소속회사명2'] == '에스케이트리켐') & (df['동일인과의 관계3'] == '동일인측이 아닌 최대주주')
+            df.loc[mask, '합계 주식수'] = float(df.loc[mask2, '합계 주식수']) + float(df.loc[mask3, '합계 주식수'])
+
+        # 에스케이하이닉스 시스템아이씨 총계가 기타에 입력
+            mask = (df['소속회사명2'] == '에스케이하이닉스 시스템아이씨') & (df['동일인과의 관계3'] == '총계')
+            mask2 = (df['소속회사명2'] == '에스케이하이닉스 시스템아이씨') & (df['동일인과의 관계3'] == '기타')
+            df.loc[mask, '합계 주식수'] = float(df.loc[mask2, '합계 주식수'])
+            df.loc[mask2, '합계 주식수'] = 0
+
+
+
+        # 유베이스매뉴팩처링아시아 합계 주식수 총계가 미입력: 입력
+            mask = (df['소속회사명2'] == '유베이스매뉴팩처링아시아') & (df['동일인과의 관계3'] == '총계')
+            mask2 = (df['소속회사명2'] == '유베이스매뉴팩처링아시아') & (df['동일인과의 관계3'] == '계열회사 (국내+해외)')
+            mask3 = (df['소속회사명2'] == '유베이스매뉴팩처링아시아') & (df['동일인과의 관계3'] == '기타')
+            df.loc[mask, '합계 주식수'] = float(df.loc[mask2, '합계 주식수']) + float(df.loc[mask3, '합계 주식수'])
+
+        # 카카오2019
+        if ((firmname == '카카오') & (year == '2019')):
+            Dapi.sumShares(df, "카카오키즈")
+
+        if ((firmname == 'SK') & (year == '2020')):
+            Dapi.sumShares(df, "유베이스매뉴팩처링아시아")
 
 
         # save the data in the after_cleansing folder
@@ -388,6 +459,8 @@ class Dapi:
         df.to_csv(f'./data/after_cleansing/{firmname}_{year}_after_cleansing.csv')
 
         return df
+
+
 
     def parseCBTable(self, df, firmname, year):
 
@@ -528,7 +601,9 @@ class Dapi:
             return '1'
         elif ((rel3 == '기타') | (rel3 == '기 타') | (rel3 == '동일인측이 아닌 최다주주') | (rel3 == '최다주주') | (rel3 == '동일인측이아닌 최다주주') | (
                 rel3 == '동일인측이 아닌최다주주') | (rel3 == '동일인이 아닌 최다주주') | (rel3 == '동일인이아닌 최다주주') | (
-                rel3 == '동일인이 아닌최다주주')):
+                rel3 == '동일인이 아닌최다주주') | (rel3 == '동일인측이 아닌 최대주주') | (rel3 == '최대주주') | (rel3 == '동일인측이아닌 최대주주') | (
+                rel3 == '동일인측이 아닌최대주주') | (rel3 == '동일인 측이 아닌 최다주주') | (rel3 == '동일인 측이 아닌 최대주주') | (rel3 == '동일인이 아닌 최대주주') | (rel3 == '동일인이아닌 최대주주') | (
+                rel3 == '동일인이 아닌최대주주')):
             return '99'
         elif (rel3 == '기타 동일인관련자'):
             return '-1'
@@ -549,7 +624,9 @@ class Dapi:
             return '1'
         elif ((rel3 == '기타') | (rel3 == '기 타') | (rel3 == '동일인측이 아닌 최다주주') | (rel3 == '최다주주') | (rel3 == '동일인측이아닌 최다주주') | (
                 rel3 == '동일인측이 아닌최다주주') | (rel3 == '동일인이 아닌 최다주주') | (rel3 == '동일인이아닌 최다주주') | (
-                rel3 == '동일인이 아닌최다주주')):
+                rel3 == '동일인이 아닌최다주주') | (rel3 == '동일인측이 아닌 최대주주') | (rel3 == '최대주주') | (rel3 == '동일인측이아닌 최대주주') | (
+                rel3 == '동일인측이 아닌최대주주') | (rel3 == '동일인 측이 아닌 최다주주') | (rel3 == '동일인 측이 아닌 최대주주') | (rel3 == '동일인이 아닌 최대주주') | (rel3 == '동일인이아닌 최대주주') | (
+                rel3 == '동일인이 아닌최대주주')):
             return '99'
         elif (rel3 == '기타 동일인관련자'):
             return '-1'
@@ -570,7 +647,9 @@ class Dapi:
             return '1'
         elif ((rel2 == '기타') | (rel2 == '기 타') | (rel2 == '동일인측이 아닌 최다주주') | (rel2 == '최다주주') | (rel2 == '동일인측이아닌 최다주주') | (
                 rel2 == '동일인측이 아닌최다주주') | (rel2 == '동일인이 아닌 최다주주') | (rel2 == '동일인이아닌 최다주주') | (
-                rel2 == '동일인이 아닌최다주주')):
+                rel2 == '동일인이 아닌최다주주') | (rel2 == '동일인측이 아닌 최대주주') | (rel2 == '최대주주') | (rel2 == '동일인측이아닌 최대주주') | (
+                rel2 == '동일인측이 아닌최대주주') | (rel2 == '동일인 측이 아닌 최대주주') | (rel2 == '동일인 측이 아닌 최다주주') | (rel2 == '동일인이 아닌 최대주주') | (rel2 == '동일인이아닌 최대주주') | (
+                rel2 == '동일인이 아닌최대주주')):
             return '99'
         elif (rel2 == '기타 동일인관련자'):
             return '-1'
@@ -580,7 +659,7 @@ class Dapi:
     def rel2_categorize2(rel2):
         import pandas as pd
         if (pd.isnull(rel2)):
-            print("missing null value occured making type2 variable")
+            # print("missing null value occured making type2 variable")
             return '-2'
         elif ((rel2 == '동일인') | (rel2 == '친족 합계') | (rel2 == '비영리법인') | (rel2 == '등기된 임원') | (rel2 == '등기된임원') | (
                 rel2 == '자기주식') | (rel2 == '친족합계')):
@@ -591,7 +670,9 @@ class Dapi:
             return '1'
         elif ((rel2 == '기타') | (rel2 == '기 타') | (rel2 == '동일인측이 아닌 최다주주') | (rel2 == '최다주주') | (rel2 == '동일인측이아닌 최다주주') | (
                 rel2 == '동일인측이 아닌최다주주') | (rel2 == '동일인이 아닌 최다주주') | (rel2 == '동일인이아닌 최다주주') | (
-                rel2 == '동일인이 아닌최다주주')):
+                rel2 == '동일인이 아닌최다주주') | (rel2 == '동일인측이 아닌 최대주주') | (rel2 == '동일인 측이 아닌 최대주주') | (rel2 == '최대주주') | (rel2 == '동일인측이아닌 최대주주') | (
+                rel2 == '동일인측이 아닌최대주주') | (rel2 == '동일인이 아닌 최대주주') | (rel2 == '동일인 측이 아닌 최다주주') | (rel2 == '동일인이아닌 최대주주') | (
+                rel2 == '동일인이 아닌최대주주')):
             return '99'
         elif (rel2 == '기타 동일인관련자'):
             return '-1'
@@ -601,6 +682,7 @@ class Dapi:
     def getCBData(self, firmname: str, year: str):
 
         import os
+        import pandas as pd
 
         print(f'Start parsing {firmname} {year} table...')
         df = self.parseCBTable(self.getRawCBData(firmname, year), firmname, year)
@@ -614,8 +696,11 @@ class Dapi:
 
         print(f'Successfully saved {firmname} {year} data in \'./data/out/\'.\nCheck confirm data in \'./data/confirm/\'')
 
-        print(checkData)
-
+        mask = (abs((checkData - 1)['own2']) >= 0.001)
+        print(f'Showing Erroneous Data in {firmname} {year}')
+        # print(list(mask))
+        pd.set_option("display.precision", 3)
+        print(checkData.loc[mask, 'own2'])
         # save the output data in the out folder
         if not os.path.exists('./data/out'):
             os.makedirs('./data/out')
@@ -656,3 +741,31 @@ class Dapi:
 
 
 
+    def subtractOwner(df, firmname):
+        mask = ((df['소속회사명2'] == firmname) & (df['동일인과의 관계3'] == '친족 합계')) | ((df['소속회사명2'] == firmname) & (df['동일인과의 관계3'] == '친족합계'))
+        mask2 = (df['소속회사명2'] == firmname) & (df['동일인과의 관계3'] == '동일인')
+        val = int(df.loc[mask, '합계 주식수'])
+        val2 = int(df.loc[mask2, '합계 주식수'])
+        df.loc[mask, '합계 주식수'] = val - val2
+
+
+    def sumShares(df, firmname):
+        import pandas as pd
+        mask = (df['동일인과의 관계3'] != '총계') & (df['동일인과의 관계3'] != '총 계') & (df['동일인과의 관계3'] != '동일인측 합계') & (df['동일인과의 관계3'] != '친족 합계')
+        sum = (df.loc[mask, ['소속회사명2', '합계 주식수']]).groupby('소속회사명2')['합계 주식수'].sum().reset_index()
+        mask = ((df['소속회사명2'] == firmname) & ((df['동일인과의 관계3'] == '총계') | (df['동일인과의 관계3'] == '총 계')))
+        df.loc[mask, '합계 주식수'] = float(sum[sum['소속회사명2'] == firmname]['합계 주식수'])
+
+
+    def copyOrdinaryShares(df, firmname, name):
+        mask = (df['소속회사명2'] == firmname) & (df['성명'] == name)
+        df.loc[mask, '합계 주식수'] = df.loc[mask, '보통주 주식수']
+
+    def copyOrdinaryShares2(df, firmname):
+        mask = (df['소속회사명2'] == firmname) & (df['동일인과의 관계3'] == '총계')
+        df.loc[mask, '합계 주식수'] = df.loc[mask, '보통주 주식수']
+
+    def copySumShares(df, firmname, rel3_name):
+        mask = (df['소속회사명2'] == firmname) & (df['동일인과의 관계3'] == '총계')
+        mask2 = (df['소속회사명2'] == firmname) & (df['동일인과의 관계3'] == rel3_name)
+        df.loc[mask, '합계 주식수'] = float(df.loc[mask2, '합계 주식수'])
