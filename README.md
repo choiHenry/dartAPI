@@ -2,13 +2,13 @@
 
 This repository contains large businesss group data package.
 
-# How package is composed
+## How package is composed
 
 1. scripts(main.py, dapi.py)
 
 2. data(group list, raw data, cleansed data, confirm data, etc.)
 
-# How to use
+## How to use
 
 1. data
 
@@ -106,7 +106,7 @@ api.getCBDataAll()
 
 ```
 
-# Error handling
+## Error handling
 
 1. If "Chromedriver permission denied" message appears in terminal, go to [chromedriver download page](https://chromedriver.chromium.org/downloads) and download latest versions in accordance with your local os.
 
@@ -116,7 +116,7 @@ api.getCBDataAll()
 $ xattr -d com.apple.quarantine chromedriver
 ```
 
-# To be updated
+## To be updated
 
 It is not hard to find patterns in report typos.
 
