@@ -161,6 +161,7 @@ class Dapi:
 
         # get the url of the '소유지분현황' page and return it
         sharesURL = driver.find_element_by_id('ifrm').get_attribute('src')
+        print(sharesURL)
 
         return sharesURL
 
@@ -174,7 +175,36 @@ class Dapi:
 
         url = self.getSharesURL(firmname, year)
         tables = pd.read_html(url, header=[0, 1])
-        df = tables[1]  # 소유지분현황 page contains empty table so skip this table
+        dfs = tables[1:]  # 소유지분현황 page contains empty table so skip this table
+        dropList = []
+        for i, df in enumerate(dfs):
+            header = []
+            colLen = len(df.columns)
+            if (colLen == 12):
+                header = ['소속회사명1', '소속회사명2', '동일인과의 관계1', '동일인과의 관계2', '동일인과의 관계3', '성명',
+                          '보통주 주식수', '보통주 지분율', '우선주 주식수', '우선주 지분율', '합계 주식수', '합계 지분율']
+                df.columns = header
+            elif (colLen == 11):
+                header = ['소속회사명1', '소속회사명2', '동일인과의 관계1', '동일인과의 관계2', '성명',
+                          '보통주 주식수', '보통주 지분율', '우선주 주식수', '우선주 지분율', '합계 주식수', '합계 지분율']
+                df.columns = header
+                df['동일인과의 관계3'] = df['동일인과의 관계2']
+            elif (colLen == 9):
+                header = ['소속회사명1', '소속회사명2', '동일인과의 관계1', '동일인과의 관계2', '성명',
+                          '보통주 주식수', '보통주 지분율', '합계 주식수', '합계 지분율']
+                df.columns = header
+                df['동일인과의 관계3'] = df['동일인과의 관계2']
+                df['우선주 주식수'] = 0
+                df['우선주 지분율'] = 0
+            else:
+                print(f'Removing a table of invalid size {colLen}...: {firmname} {year}')
+                dropList.append(i)
+
+        for i in dropList:
+            del dfs[i]
+
+        df = pd.concat(dfs)
+
 
         # save the raw data in the raw folder
         if not os.path.exists('./data/raw'):
@@ -182,13 +212,8 @@ class Dapi:
         df.to_csv(f'./data/raw/{firmname}_{year}_raw.csv')
 
         # reset column names
-        header = []
-        if (len(df.columns) == 12):
-            header = ['소속회사명1', '소속회사명2', '동일인과의 관계1', '동일인과의 관계2', '동일인과의 관계3', '성명',
-                      '보통주 주식수', '보통주 지분율', '우선주 주식수', '우선주 지분율', '합계 주식수', '합계 지분율']
-        elif (len(df.columns) == 11):
-            header = ['소속회사명1', '소속회사명2', '동일인과의 관계1', '동일인과의 관계2', '성명',
-                      '보통주 주식수', '보통주 지분율', '우선주 주식수', '우선주 지분율', '합계 주식수', '합계 지분율']
+        header = ['소속회사명1', '소속회사명2', '동일인과의 관계1', '동일인과의 관계2', '동일인과의 관계3', '성명', '보통주 주식수',
+                  '보통주 지분율', '우선주 주식수', '우선주 지분율', '합계 주식수', '합계 지분율']
         df.columns = header
 
         # 동일한 행이 반복되는 경우 제외
@@ -202,6 +227,12 @@ class Dapi:
         df.replace('\(주\)', '', regex=True, inplace=True)
         df.replace('㈜', '', regex=True, inplace=True)
 
+        # LS(LS)2019 data cleansing
+        if (((firmname == 'LS') & (year == '2019')) | ((firmname == 'LS') & (year == '2020'))):
+            mask = df['소속회사명1'] == '엘에스글로벌인코퍼레이티드'
+            df[mask] = df[mask].shift(1, axis=1)
+            df.loc[mask, '합계 주식수'] = df.loc[mask, '보통주 지분율']
+
         # 합계 주식수에 숫자가 아닌 다른 문자가 입력되어 있는 경우 제거
         # 신세계(신세계)2019의 에스에스지닷컴은 0.8주의 자기주식을 보유함.
         if ((firmname == '신세계') & (year == '2019')):
@@ -210,16 +241,23 @@ class Dapi:
             df['합계 주식수'].replace('[^0-9]*', '', regex=True, inplace=True)
 
 
-        # 동일인과의 관계3(또는 2)에 ① - ⑨이 포함되어 있으면(+좌우로 공백이 있는 경우 포함) 제거
-        if (len(df.columns) == 12):
-            df['동일인과의 관계3'].replace(' *[\u2460-\u2468] *', '', regex=True, inplace=True)
-        else:
-            df['동일인과의 관계2'].replace(' *[\u2460-\u2468] *', '', regex=True, inplace=True)
+        # 동일인과의 관계2, 3에 ① - ⑨이 포함되어 있으면(+좌우로 공백이 있는 경우 포함) 제거
+
+        df['동일인과의 관계3'].replace(' *[\u2460-\u2468] *', '', regex=True, inplace=True)
+        df['동일인과의 관계2'].replace(' *[\u2460-\u2468] *', '', regex=True, inplace=True)
 
         # 동원(동원엔터프라이즈)2019 data cleansing
         # 부산신항다목적터미널의 경우 기타에 기타총계 50%가 추가로 입력됨
         if ((firmname == '동원엔터프라이즈') & (year == '2019')):
             df.drop([107], axis=0, inplace=True)
+
+        # 미래에셋(미래에셋캐피탈)2020 data cleansing
+        if ((firmname == '미래에셋캐피탈') & (year == '2020')):
+            Dapi.copyOrdinaryShares(df, '수원학교사랑', '덕동종합건설')
+            Dapi.copyOrdinaryShares(df, '수원학교사랑', '에이치디에스자산관리')
+            Dapi.copyOrdinaryShares(df, '수원학교사랑', '영동건설')
+            Dapi.copyOrdinaryShares(df, '수원학교사랑', '한동건설')
+
 
         # 애경(AK홀딩스)2019 data cleansing
         if ((firmname == 'AK홀딩스') & (year == '2019')):
@@ -513,7 +551,7 @@ class Dapi:
         # extract, make, merge, and calculate
 
         sum_check =df.groupby('소속회사명2')['동일인과의 관계1'].apply(lambda x: ((x == '총계') | (x == '총 계') | (x == '합계')).sum()).reset_index(name='count')
-        print(sum_check.head(5))
+
 
 
         sum = df[(df['동일인과의 관계1'].str.contains('총\s*계', regex=True) | df['동일인과의 관계1'].str.contains(
@@ -651,7 +689,7 @@ class Dapi:
                 rel3 == '동일인측이 아닌최다주주') | (rel3 == '동일인이 아닌 최다주주') | (rel3 == '동일인이아닌 최다주주') | (
                 rel3 == '동일인이 아닌최다주주') | (rel3 == '동일인측이 아닌 최대주주') | (rel3 == '최대주주') | (rel3 == '동일인측이아닌 최대주주') | (
                 rel3 == '동일인측이 아닌최대주주') | (rel3 == '동일인 측이 아닌 최다주주') | (rel3 == '동일인 측이 아닌 최대주주') | (rel3 == '동일인이 아닌 최대주주') | (rel3 == '동일인이아닌 최대주주') | (
-                rel3 == '동일인이 아닌최대주주')):
+                rel3 == '동일인이 아닌최대주주') | (rel3 == '동일인측이아닌최다주주')):
             return '99'
         elif (rel3 == '기타 동일인관련자'):
             return '-1'
@@ -676,62 +714,61 @@ class Dapi:
                 rel3 == '동일인측이 아닌최다주주') | (rel3 == '동일인이 아닌 최다주주') | (rel3 == '동일인이아닌 최다주주') | (
                 rel3 == '동일인이 아닌최다주주') | (rel3 == '동일인측이 아닌 최대주주') | (rel3 == '최대주주') | (rel3 == '동일인측이아닌 최대주주') | (
                 rel3 == '동일인측이 아닌최대주주') | (rel3 == '동일인 측이 아닌 최다주주') | (rel3 == '동일인 측이 아닌 최대주주') | (rel3 == '동일인이 아닌 최대주주') | (rel3 == '동일인이아닌 최대주주') | (
-                rel3 == '동일인이 아닌최대주주')):
+                rel3 == '동일인이 아닌최대주주') | (rel3 == '동일인측이아닌최다주주')):
             return '99'
         elif (rel3 == '기타 동일인관련자'):
             return '-1'
         else:
             return '50'
 
-    def rel2_categorize(rel2):
-        # import math
-        import pandas as pd
-        if (pd.isnull(rel2)):
-            print("missing null value occured making type variable")
-            return '-2'
-        elif ((rel2 == '동일인') | (rel2 == '친족 합계') | (rel2 == '친족합계')):
-            return '0'
-        elif ('계열회사' in rel2):
-            return '1'
-        elif ('국내+해외' in rel2):
-            return '1'
-        elif ('해외계열' in rel2):
-            return '1'
-        elif ((rel2 == '기타주주') | (rel2 == '기타') | (rel2 == '기 타') | (rel2 == '동일인측이 아닌 최다주주') | (rel2 == '최다주주') | (rel2 == '동일인측이아닌 최다주주') | (
-                rel2 == '동일인측이 아닌최다주주') | (rel2 == '동일인이 아닌 최다주주') | (rel2 == '동일인이아닌 최다주주') | (
-                rel2 == '동일인이 아닌최다주주') | (rel2 == '동일인측이 아닌 최대주주') | (rel2 == '최대주주') | (rel2 == '동일인측이아닌 최대주주') | (
-                rel2 == '동일인측이 아닌최대주주') | (rel2 == '동일인 측이 아닌 최대주주') | (rel2 == '동일인 측이 아닌 최다주주') | (rel2 == '동일인이 아닌 최대주주') | (rel2 == '동일인이아닌 최대주주') | (
-                rel2 == '동일인이 아닌최대주주')):
-            return '99'
-        elif (rel2 == '기타 동일인관련자'):
-            return '-1'
-        else:
-            return '50'
+    # def rel2_categorize(rel2):
+    #     import pandas as pd
+    #     if (pd.isnull(rel2)):
+    #         print("missing null value occured making type variable")
+    #         return '-2'
+    #     elif ((rel2 == '동일인') | (rel2 == '친족 합계') | (rel2 == '친족합계')):
+    #         return '0'
+    #     elif ('계열회사' in rel2):
+    #         return '1'
+    #     elif ('국내+해외' in rel2):
+    #         return '1'
+    #     elif ('해외계열' in rel2):
+    #         return '1'
+    #     elif ((rel2 == '기타주주') | (rel2 == '기타') | (rel2 == '기 타') | (rel2 == '동일인측이 아닌 최다주주') | (rel2 == '최다주주') | (rel2 == '동일인측이아닌 최다주주') | (
+    #             rel2 == '동일인측이 아닌최다주주') | (rel2 == '동일인이 아닌 최다주주') | (rel2 == '동일인이아닌 최다주주') | (
+    #             rel2 == '동일인이 아닌최다주주') | (rel2 == '동일인측이 아닌 최대주주') | (rel2 == '최대주주') | (rel2 == '동일인측이아닌 최대주주') | (
+    #             rel2 == '동일인측이 아닌최대주주') | (rel2 == '동일인 측이 아닌 최대주주') | (rel2 == '동일인 측이 아닌 최다주주') | (rel2 == '동일인이 아닌 최대주주') | (rel2 == '동일인이아닌 최대주주') | (
+    #             rel2 == '동일인이 아닌최대주주') | (rel2 == '동일인측이아닌최다주주')):
+    #         return '99'
+    #     elif (rel2 == '기타 동일인관련자'):
+    #         return '-1'
+    #     else:
+    #         return '50'
 
-    def rel2_categorize2(rel2):
-        import pandas as pd
-        if (pd.isnull(rel2)):
-            # print("missing null value occured making type2 variable")
-            return '-2'
-        elif ((rel2 == '동일인') | (rel2 == '친족 합계') | (rel2 == '비영리법인') | (rel2 == '등기된 임원') | (rel2 == '등기된임원') | (
-                rel2 == '자기주식') | (rel2 == '친족합계')):
-            return '0'
-        elif ('국내+해외' in rel2):
-            return '1'
-        elif ('계열회사' in rel2):
-            return '1'
-        elif ('해외계열' in rel2):
-            return '1'
-        elif ((rel2 == '기타주주') | (rel2 == '기타') | (rel2 == '기 타') | (rel2 == '동일인측이 아닌 최다주주') | (rel2 == '최다주주') | (rel2 == '동일인측이아닌 최다주주') | (
-                rel2 == '동일인측이 아닌최다주주') | (rel2 == '동일인이 아닌 최다주주') | (rel2 == '동일인이아닌 최다주주') | (
-                rel2 == '동일인이 아닌최다주주') | (rel2 == '동일인측이 아닌 최대주주') | (rel2 == '동일인 측이 아닌 최대주주') | (rel2 == '최대주주') | (rel2 == '동일인측이아닌 최대주주') | (
-                rel2 == '동일인측이 아닌최대주주') | (rel2 == '동일인이 아닌 최대주주') | (rel2 == '동일인 측이 아닌 최다주주') | (rel2 == '동일인이아닌 최대주주') | (
-                rel2 == '동일인이 아닌최대주주')):
-            return '99'
-        elif (rel2 == '기타 동일인관련자'):
-            return '-1'
-        else:
-            return '50'
+    # def rel2_categorize2(rel2):
+    #     import pandas as pd
+    #     if (pd.isnull(rel2)):
+    #         # print("missing null value occured making type2 variable")
+    #         return '-2'
+    #     elif ((rel2 == '동일인') | (rel2 == '친족 합계') | (rel2 == '비영리법인') | (rel2 == '등기된 임원') | (rel2 == '등기된임원') | (
+    #             rel2 == '자기주식') | (rel2 == '친족합계')):
+    #         return '0'
+    #     elif ('국내+해외' in rel2):
+    #         return '1'
+    #     elif ('계열회사' in rel2):
+    #         return '1'
+    #     elif ('해외계열' in rel2):
+    #         return '1'
+    #     elif ((rel2 == '기타주주') | (rel2 == '기타') | (rel2 == '기 타') | (rel2 == '동일인측이 아닌 최다주주') | (rel2 == '최다주주') | (rel2 == '동일인측이아닌 최다주주') | (
+    #             rel2 == '동일인측이 아닌최다주주') | (rel2 == '동일인이 아닌 최다주주') | (rel2 == '동일인이아닌 최다주주') | (
+    #             rel2 == '동일인이 아닌최다주주') | (rel2 == '동일인측이 아닌 최대주주') | (rel2 == '동일인 측이 아닌 최대주주') | (rel2 == '최대주주') | (rel2 == '동일인측이아닌 최대주주') | (
+    #             rel2 == '동일인측이 아닌최대주주') | (rel2 == '동일인이 아닌 최대주주') | (rel2 == '동일인 측이 아닌 최다주주') | (rel2 == '동일인이아닌 최대주주') | (
+    #             rel2 == '동일인이 아닌최대주주') | (rel2 == '동일인측이아닌최다주주')):
+    #         return '99'
+    #     elif (rel2 == '기타 동일인관련자'):
+    #         return '-1'
+    #     else:
+    #         return '50'
 
     def getCBData(self, firmname: str, year: str):
 
