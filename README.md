@@ -121,5 +121,11 @@ It is not hard to find patterns in report typos.
 
 1. '친족 합계' row value in '합계 주식수' column contains '합계 주식수' data of '동일인'
 2. '기타' rows of a firm contains '합계' row
+3. There exists reports that do not contains '총계' obs. To update a program to check these reports takes priority over 1 and 2.
 
 These common errors could be handled in a general algorithm.
+
+
+## Update Note
+
+1. 01/21/2021: Added 'typos.csv' where unprocess typos of reports are listed.
