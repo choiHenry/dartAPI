@@ -376,6 +376,26 @@ class Dapi:
             df.loc[mask, '합계 주식수'] = df.loc[mask, '보통주 주식수']
             # print(df.loc[mask, '합계 주식수'])
 
+        # 롯데(롯데지주)2020 data cleansing
+        if (firmname == '롯데지주'):
+
+            # 롯데(롯데지주)2020 raw data의 경우 동일인과의 관계3이 missing value인 경우가 많음: 동일인과의 관계2를 이용하여 채우기
+            import pandas as pd
+
+            mask = df['동일인과의 관계1'].str.contains('합계', na=False)
+            df.loc[mask, '동일인과의 관계1'] = '합계'
+            df.loc[mask, '동일인과의 관계2'] = '합계'
+            df.loc[mask, '동일인과의 관계3'] = '합계'
+
+            df['동일인과의 관계3'].astype(str)
+
+            mask = df['동일인과의 관계3'].isnull()
+            # print(mask.head(30))
+            df.loc[mask, '동일인과의 관계3'] = df.loc[mask, '동일인과의 관계2']
+
+
+
+
 
 
         # 넥슨(엔엑스씨) data cleansing
@@ -599,6 +619,8 @@ class Dapi:
             return '1'
         elif ('국내+해외' in rel3):
             return '1'
+        elif ('해외계열' in rel3):
+            return '1'
         elif ((rel3 == '기타') | (rel3 == '기 타') | (rel3 == '동일인측이 아닌 최다주주') | (rel3 == '최다주주') | (rel3 == '동일인측이아닌 최다주주') | (
                 rel3 == '동일인측이 아닌최다주주') | (rel3 == '동일인이 아닌 최다주주') | (rel3 == '동일인이아닌 최다주주') | (
                 rel3 == '동일인이 아닌최다주주') | (rel3 == '동일인측이 아닌 최대주주') | (rel3 == '최대주주') | (rel3 == '동일인측이아닌 최대주주') | (
@@ -621,6 +643,8 @@ class Dapi:
         elif ('계열회사' in rel3):
             return '1'
         elif ('국내+해외' in rel3):
+            return '1'
+        elif ('해외계열' in rel3):
             return '1'
         elif ((rel3 == '기타') | (rel3 == '기 타') | (rel3 == '동일인측이 아닌 최다주주') | (rel3 == '최다주주') | (rel3 == '동일인측이아닌 최다주주') | (
                 rel3 == '동일인측이 아닌최다주주') | (rel3 == '동일인이 아닌 최다주주') | (rel3 == '동일인이아닌 최다주주') | (
@@ -645,6 +669,8 @@ class Dapi:
             return '1'
         elif ('국내+해외' in rel2):
             return '1'
+        elif ('해외계열' in rel2):
+            return '1'
         elif ((rel2 == '기타') | (rel2 == '기 타') | (rel2 == '동일인측이 아닌 최다주주') | (rel2 == '최다주주') | (rel2 == '동일인측이아닌 최다주주') | (
                 rel2 == '동일인측이 아닌최다주주') | (rel2 == '동일인이 아닌 최다주주') | (rel2 == '동일인이아닌 최다주주') | (
                 rel2 == '동일인이 아닌최다주주') | (rel2 == '동일인측이 아닌 최대주주') | (rel2 == '최대주주') | (rel2 == '동일인측이아닌 최대주주') | (
@@ -667,6 +693,8 @@ class Dapi:
         elif ('국내+해외' in rel2):
             return '1'
         elif ('계열회사' in rel2):
+            return '1'
+        elif ('해외계열' in rel2):
             return '1'
         elif ((rel2 == '기타') | (rel2 == '기 타') | (rel2 == '동일인측이 아닌 최다주주') | (rel2 == '최다주주') | (rel2 == '동일인측이아닌 최다주주') | (
                 rel2 == '동일인측이 아닌최다주주') | (rel2 == '동일인이 아닌 최다주주') | (rel2 == '동일인이아닌 최다주주') | (
