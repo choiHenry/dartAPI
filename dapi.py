@@ -222,16 +222,21 @@ class Dapi:
         # parse raw html table with designated headers
 
         url = self.getSharesURL(firmname, year)
-        tables = pd.read_html(url, header=[0, 1])
+        if ((firmname == 'KG케미칼') & (year == '2020')):
+            tables = pd.read_html(url, header=None)
+        else:
+            tables = pd.read_html(url, header=[0, 1])
         dfs = tables[1:]  # 소유지분현황 page contains empty table so skip this table
+
         dropList = []
         for i, df in enumerate(dfs):
-            header = []
+
             colLen = len(df.columns)
             if (colLen == 12):
                 header = ['소속회사명1', '소속회사명2', '동일인과의 관계1', '동일인과의 관계2', '동일인과의 관계3', '성명',
                           '보통주 주식수', '보통주 지분율', '우선주 주식수', '우선주 지분율', '합계 주식수', '합계 지분율']
                 df.columns = header
+
             elif (colLen == 11):
                 header = ['소속회사명1', '소속회사명2', '동일인과의 관계1', '동일인과의 관계2', '성명',
                           '보통주 주식수', '보통주 지분율', '우선주 주식수', '우선주 지분율', '합계 주식수', '합계 지분율']
@@ -250,6 +255,7 @@ class Dapi:
 
         for i in dropList:
             del dfs[i]
+
 
         df = pd.concat(dfs)
 
@@ -579,6 +585,9 @@ class Dapi:
 
         if ((firmname == 'SK') & (year == '2020')):
             Dapi.sumShares(df, "유베이스매뉴팩처링아시아")
+
+        if ((firmname == 'KG케미칼') & (year == '2020')):
+            Dapi.subtractOwner(df, 'KG이니시스')
 
 
         # save the data in the after_cleansing folder
