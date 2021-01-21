@@ -411,6 +411,11 @@ class Dapi:
             df.loc[mask, '동일인과의 관계3'] = df.loc[mask, '동일인과의 관계2']
 
 
+        # LG 2019 동일인측 인물의 동일인과의 관계가 불분명함: '기타 동일인관련자'로 입력
+        if ((firmname=="LG") & (year=='2019')):
+
+            mask = df['동일인과의 관계3'].isnull()
+            df.loc[mask, '동일인과의 관계3'] = '기타 동일인관련자'
 
 
 
@@ -528,8 +533,7 @@ class Dapi:
         if ('동일인과의 관계3' in df):
             df['type'] = df['동일인과의 관계3']
             df['type2'] = df['동일인과의 관계3']
-            # df.to_csv('checkout.csv')
-            # print(df.index[df['type'] ].tolist())
+
             df['type'] = df['type'].apply(Dapi.rel3_categorize)
             df['type2'] = df['type2'].apply(Dapi.rel3_categorize2)
 
@@ -819,3 +823,4 @@ class Dapi:
         mask = (df['소속회사명2'] == firmname) & (df['동일인과의 관계3'] == '총계')
         mask2 = (df['소속회사명2'] == firmname) & (df['동일인과의 관계3'] == rel3_name)
         df.loc[mask, '합계 주식수'] = float(df.loc[mask2, '합계 주식수'])
+
