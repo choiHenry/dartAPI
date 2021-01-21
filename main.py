@@ -38,9 +38,17 @@ api.groupList = groupList
 myAPIKey = "7946dcde119af7656afc01157071c0ab9488b9ad"  # api key
 api.apiKey = myAPIKey
 # api.saveGroupListData()
-api.getCBDataCont('교보생명보험', 2019)
+# api.getCBDataCont('교보생명보험', 2019)
 # api.getCBDataAll()
-# api.getCBData('교보생명보험', '2019')
+# api.getCBData('HMM', '2020')
+pb_dict =  {'reprFirm': ['아이엠엠인베스트먼트', '하림지주', '한국금융지주', '농협경제지주', '동국제강'],
+          'year' : [' 2020', '2020', '2020', '2020', '2019'],
+          'firm' : ['페트라7의알파 사모투자합자회사', '팬오션', '한국투자혁신성장스케일업사모투자합자회사',
+                    '엔에이치큐씨피중소중견글로벌투자파트너쉽사모투자전문회사', '제이비당진페럼빌전문투자형사모투자유한회사'],
+          'pb': ['shares sum 0.982', 'shares sum 1.032', 'shares sum  0.0', 'shares sum  0.0', 'shares sum 0.0']}
+import pandas as pd
+pb_df = pd.DataFrame(pb_dict)
+pb_df.to_csv('typos.csv')
 # api.getCBDataof(2019)
 
 
