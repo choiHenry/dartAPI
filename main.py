@@ -39,7 +39,7 @@ myAPIKey = "7946dcde119af7656afc01157071c0ab9488b9ad"  # api key
 api.apiKey = myAPIKey
 # api.saveGroupListData()
 # api.getCBDataCont('교보생명보험', 2019)
-# api.getCBDataAll()
+api.getCBDataAll()
 # api.getCBData('HMM', '2020')
 pb_dict =  {'reprFirm': ['아이엠엠인베스트먼트', '하림지주', '한국금융지주', '농협경제지주', '동국제강'],
           'year' : [' 2020', '2020', '2020', '2020', '2019'],
