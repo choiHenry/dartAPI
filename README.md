@@ -24,7 +24,7 @@ The final datasets are in 'out' directory.
 
 The confirm datasets are in confirm directory.
 
-### program
+### Program
 
 After cloning this repository in a local directory on your machine, install python(version >= 3.6).
 
