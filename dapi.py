@@ -909,8 +909,8 @@ class Dapi:
         driver = webdriver.Chrome('./chromedriver')
         driver.implicitly_wait(3)
         grsrch_url = 'https://www.kisline.com/gr/GR0100M00GE00.nice'
-        username = 'chti0265'
-        password = 'GUSxo0031!'
+        username = <your-user-name>
+        password = <your-user-password>
         driver.get(grsrch_url)
         driver.find_element_by_class_name('btn_close_layer').click()
 
@@ -1003,8 +1003,8 @@ class Dapi:
         driver = webdriver.Chrome('./chromedriver')
         driver.implicitly_wait(3)
         url = 'https://www.kisline.com/gr/GR0100M00GE00.nice'
-        username = 'wonbok'
-        password = 'gkrtkrhk5034!'
+        username = < your - user - name >
+        password = < your - user - password >
         driver.get(url)
         driver.find_element_by_class_name('btn_close_layer').click()
         driver.find_element_by_id('lgnuid').send_keys(username)
