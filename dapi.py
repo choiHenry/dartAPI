@@ -909,8 +909,8 @@ class Dapi:
         driver = webdriver.Chrome('./chromedriver')
         driver.implicitly_wait(3)
         grsrch_url = 'https://www.kisline.com/gr/GR0100M00GE00.nice'
-        username = <your-user-name>
-        password = <your-user-password>
+        username = 'wonbok'
+        password = 'gkrtkrhk5034!'
         driver.get(grsrch_url)
         driver.find_element_by_class_name('btn_close_layer').click()
 
@@ -998,68 +998,80 @@ class Dapi:
         groupdf2019 = pd.read_csv('./data/group_list/2019_group_list.csv')
         groupdf2020 = pd.read_csv('./data/group_list/2020_group_list.csv')
         groupList = [groupdf2019, groupdf2020]
-        df = groupList[year - 2019][49:50]
 
         driver = webdriver.Chrome('./chromedriver')
         driver.implicitly_wait(3)
         url = 'https://www.kisline.com/gr/GR0100M00GE00.nice'
-        username = < your - user - name >
-        password = < your - user - password >
+        username = 'wonbok'
+        password = 'gkrtkrhk5034!'
         driver.get(url)
+        time.sleep(1)
         driver.find_element_by_class_name('btn_close_layer').click()
         driver.find_element_by_id('lgnuid').send_keys(username)
+        time.sleep(1)
         driver.find_element_by_id('tmp_lgnupassword').click()
         driver.find_element_by_id('lgnupassword').send_keys(password)
+        time.sleep(1)
         driver.find_element_by_class_name('btn_login').click()
+        time.sleep(1)
         driver.switch_to.window(driver.window_handles[1])
         driver.close()
         driver.switch_to.window(driver.window_handles[0])
-        df = groupList[year-2019]
+        df = groupList[year-2019][20:40]
 
         for i in df.index:
-            firm_dict = {'firm':[], 'kiscode':[], 'kiscode_tf':[]}
+            firm_dict = {'firm':[], 'kiscode':[], 'kiscode_tf':[], 'business': []}
+            time.sleep(1)
             driver.find_element_by_link_text('그룹').click()
-            time.sleep(5)
+            time.sleep(1)
             group = df.loc[i, '그룹명']
             inputElement = driver.find_element_by_id("srchk")
             inputElement.send_keys(group)
+            time.sleep(1)
             driver.find_element_by_link_text('조회').click()
-            time.sleep(5)
+            time.sleep(1)
             if (group == '동원'):
                 driver.find_element_by_css_selector('#cont > div.tbl_type03 > table > tbody > tr:nth-child(2) > td:nth-child(2) > a').click()
             else:
                 driver.find_element_by_name('grpname').click()
+            time.sleep(1)
             driver.find_element_by_link_text('계열사현황').click()
-            time.sleep(5)
-            select = Select(driver.find_element_by_id('i_year'))
-            select.select_by_value(str(year))
-            driver.find_element_by_id('slct').click()
-            driver.sleep(5)
+            time.sleep(1)
+            if year == time.localtime().tm_year:
+                continue
+            else:
+                select = Select(driver.find_element_by_id('i_year'))
+                select.select_by_value(str(year))
+                time.sleep(1)
+                driver.find_element_by_id('slct').click()
+                time.sleep(1)
             html = driver.page_source
             soup = BeautifulSoup(html, 'html.parser')
-            print(soup)
+            # print(soup)
             target_links = soup.findAll("a", {"name": "overV"})
-            print(target_links)
+            # print(target_links)
             for link in target_links:
-                print(link)
+                # print(link)
                 firm = link.text
                 kiscode = link['data-kiscode']
+                business = link['data-business']
                 kiscode_tf = kiscode
                 for k, v in self.w_to_d.items():
                     kiscode_tf = kiscode_tf.replace(k, v)
                 firm_dict['firm'].append(firm)
                 firm_dict['kiscode'].append(kiscode)
                 firm_dict['kiscode_tf'].append(kiscode_tf)
-            print(firm_dict)
+                firm_dict['business'].append(business)
+            # print(firm_dict)
             firm_df = pd.DataFrame.from_dict(firm_dict)
 
-            if not os.path.exists('./data'):
-                os.makedirs('./data')
-            firm_df.to_csv(f'./data/kiscode_{group}_2019.csv')
-            firm_df.to_excel(f'./data/kiscode_{group}_2019.xlsx')
-            time.sleep(5)
+            if not os.path.exists(f'./data/kiscode{year}_2'):
+                os.makedirs(f'./data/kiscode{year}_2')
+            firm_df.to_csv(f'./data/kiscode{year}_2/kiscode_{group}_{year}.csv')
+            firm_df.to_excel(f'./data/kiscode{year}_2/kiscode_{group}_{year}.xlsx')
+            time.sleep(1)
 
-    def concat_files(self, dir):
+    def concat_files(self, dir, ext):
         """
         concat all files in 'dir' location and save as 'concat.xlsx' and 'concat.csv' in dir
         :param dir:
@@ -1072,14 +1084,16 @@ class Dapi:
         if dir[-1] == '/':
             dir = dir[:-1]
         file_list = os.listdir(dir)
-        df_list = []
 
+        df_list = []
         for file in file_list:
-            if file == '.DS_Store':
-                continue
-            file = dir+'/'+file
-            print(file)
-            df_list.append(pd.read_excel(file, engine='openpyxl'))
+            if file.endswith(f'.{ext}'):
+                file = dir+'/'+file
+                print(file)
+                if ext == 'xlsx':
+                    df_list.append(pd.read_excel(file, engine='openpyxl'))
+                elif ext == 'csv':
+                    df_list.append(pd.read_csv(file))
         df = pd.concat(df_list)
         df.to_csv(f'{dir}/concat.csv')
         df.to_excel(f'{dir}/concat.xlsx')
